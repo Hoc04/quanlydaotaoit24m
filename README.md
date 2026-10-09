@@ -220,3 +220,5 @@ This project aims to develop a web platform for University Training Management S
 - Regularly update this README.md to reflect the current state of the project.
 - Use GitHub Issues to track detailed tasks and bugs.
 - Utilize GitHub Projects for more advanced project management.
+
+
