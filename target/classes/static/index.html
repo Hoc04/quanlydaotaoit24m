@@ -1,265 +1,353 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đào tạo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
+        .card, .btn, .form-control, .form-select, .badge, .nav-link, .modal-content { border-radius: 0 !important; }
+        
+        .stat-card { color: white; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .bg-blue { background-color: #2563eb; }
+        .bg-purple { background-color: #7c3aed; }
+        .bg-green { background-color: #059669; }
+        .stat-card h5 { font-size: 1rem; font-weight: normal; margin-bottom: 5px; }
+        .stat-card h2 { font-size: 2.5rem; font-weight: bold; margin-bottom: 5px; }
+        .stat-card p { font-size: 0.85rem; margin-bottom: 0; opacity: 0.9; }
 
-    <title id="pageTitle">
-        Quản lý sinh viên | AdminLTE 4
-    </title>
-    <meta name="color-scheme" content="light dark" />
+        .custom-tabs .nav-link { color: #555; border: 1px solid transparent; background: #e9ecef; margin-right: 5px; font-weight: 500; cursor: pointer; }
+        .custom-tabs .nav-link.active { background-color: white; color: #000; border: 1px solid #dee2e6; border-bottom-color: white; }
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="/adminlte/css/adminlte.css" />
-    <link rel="stylesheet" href="/assets/css/student.css" />
+        .table-container { background: white; padding: 20px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .table thead th { background-color: #f1f3f5; font-size: 0.85rem; text-transform: uppercase; color: #666; border-bottom: 2px solid #dee2e6; }
+        .table tbody td { font-size: 0.9rem; vertical-align: middle; }
+        .badge-active { background-color: #d1fae5; color: #065f46; padding: 5px 10px; font-weight: 500; }
+    </style>
 </head>
+<body>
 
-<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
-<div class="app-wrapper">
-    <nav class="app-header navbar navbar-expand bg-body">
-        <div class="container-fluid">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
-                        <i class="bi bi-list"></i>
-                    </a>
-                </li>
-                <li class="nav-item d-none d-md-block">
-                    <span class="nav-link fw-semibold">
-                        Quản lý đào tạo
-                    </span>
-                </li>
-            </ul>
+<div class="container-fluid py-4 px-5">
+    <!-- HEADER: Đã thêm nút chuyển sang trang Sinh Viên -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="text-primary fw-bold text-uppercase mb-1">Hệ thống Quản lý Đào tạo</h6>
+            <h1 class="fw-bold mb-0">Quản lý Năm học & Học kỳ</h1>
+            <p class="text-muted">Theo dõi năm học, học kỳ và đăng ký học phần trên cùng một màn hình.</p>
         </div>
-    </nav>
-    <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
-        <div class="sidebar-brand">
-            <a href="index.html" class="brand-link">
-                <img src="/adminlte/assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image opacity-75 shadow" />
-                <span class="brand-text fw-light">
-                    School Manager
-                </span>
-            </a>
+        <div>
+            <!-- Link chuyển trang -->
+            <a href="/student.html" class="btn btn-outline-primary fw-bold">Quản lý Sinh viên ➔</a>
         </div>
+    </div>
 
-        <div class="sidebar-wrapper">
-            <nav class="mt-2">
-                <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="navigation" data-accordion="false">
-                    <li class="nav-item">
-                        <a href="index.html" class="nav-link active">
-                            <i class="nav-icon bi bi-people-fill"></i>
-                            <p>
-                                Sinh viên
-                            </p>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </aside>
-
-    <main class="app-main">
-        <div id="page-list">
-            <!-- Page Header -->
-            <div class="app-content-header">
-                <div class="container-fluid">
-                    <div class="row align-items-center">
-                        <div class="col-sm-6">
-                            <h3 class="mb-0">
-                                Quản lý sinh viên
-                            </h3>
-                        </div>
-                        <div class="col-sm-6">
-                            <ol class="breadcrumb float-sm-end mb-0">
-                                <li class="breadcrumb-item">
-                                    <a href="index.html">
-                                        Trang chủ
-                                    </a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page">
-                                    Sinh viên
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
+    <!-- Thẻ Thống Kê (Cards) -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card bg-blue">
+                <h5>Năm học</h5>
+                <h2 id="count-school-years">0</h2>
+                <p>Đang hoạt động: <span id="count-sy-active">0</span></p>
             </div>
-            <!-- Content -->
-            <div class="app-content">
-                <div class="container-fluid">
-                    <div class="card shadow-sm border-0">
-                        <!-- Card Header -->
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-                            <h3 class="card-title mb-0">
-                                Danh sách sinh viên
-                            </h3>
-                            <div class="d-flex flex-wrap align-items-center gap-2">
-                                <!-- Search -->
-                                <form id="searchForm" class="d-flex gap-2 align-items-center">
-                                    <div class="input-group input-group-sm" style="width: 320px;">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-search"></i>
-                                        </span>
-                                        <input type="text" id="keyword" name="keyword" class="form-control" placeholder="Tìm theo mã / họ tên / email..." />
-                                    </div>
-                                    <button class="btn btn-primary btn-sm" type="submit">
-                                        <i class="bi bi-funnel me-1"></i>
-                                        Tìm kiếm
-                                    </button>
-                                </form>
-                                <!-- Create -->
-                                <a class="btn btn-primary btn-sm" href="index.html?page=form">
-                                    <i class="bi bi-plus-circle me-1"></i>
-                                    Thêm sinh viên
-                                </a>
-                            </div>
-                        </div>
-                        <!-- Table -->
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 18%;">
-                                            Mã sinh viên
-                                        </th>
-                                        <th style="width: 24%;">
-                                            Họ và tên
-                                        </th>
-                                        <th style="width: 22%;">
-                                            Email
-                                        </th>
-                                        <th style="width: 16%;">
-                                            Số điện thoại
-                                        </th>
-                                        <th style="width: 12%;">
-                                            Lớp
-                                        </th>
-                                        <th style="width: 8%;" class="text-end">
-                                            Hành động
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="studentTableBody">
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            Đang tải dữ liệu...
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card bg-purple">
+                <h5>Học kỳ</h5>
+                <h2 id="count-semesters">0</h2>
+                <p>Đang hoạt động: <span id="count-sem-active">0</span></p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card bg-green">
+                <h5>Đăng ký học phần</h5>
+                <h2 id="count-registrations">0</h2>
+                <p>Đang hoạt động: <span id="count-reg-active">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thanh Tab -->
+    <ul class="nav nav-tabs custom-tabs mb-0 border-bottom-0">
+        <li class="nav-item">
+            <a class="nav-link" id="tab-sy" onclick="switchTab('schoolyear')">Năm học</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" id="tab-sem" onclick="switchTab('semester')">Học kỳ</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-reg" onclick="switchTab('registration')">Đăng ký học phần</a>
+        </li>
+    </ul>
+
+    <!-- Nội dung chính -->
+    <div class="table-container">
+        
+        <!-- BỘ LỌC VÀ TÌM KIẾM DÙNG CHUNG -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-0" id="table-title">Danh sách học kỳ</h5>
+                <small class="text-muted" id="table-desc">Tra cứu học kỳ theo tên, mã và trạng thái.</small>
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" id="searchInput" class="form-control" placeholder="Tìm mã hoặc tên..." style="width: 250px;" onkeyup="filterTable()">
+                
+                <!-- SỬA LẠI THANH LỌC TRẠNG THÁI (Giống ảnh 3) -->
+                <select id="statusFilter" class="form-select fw-bold" style="width: 180px; cursor: pointer;" onchange="filterTable()">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="inactive">Đã khóa</option>
+                </select>
+
+                <!-- Nút dành riêng cho Tab Đăng ký -->
+                <button class="btn btn-primary fw-bold" id="btn-action" onclick="openActionModal()" style="display: none;">Đăng ký môn</button>
             </div>
         </div>
 
-        <div id="page-form" style="display: none;">
-            <!-- Page Header -->
-            <div class="app-content-header">
-                <div class="container-fluid">
-                    <div class="row align-items-center">
-                        <div class="col-sm-6">
-                            <h3 class="mb-0" id="pageHeading">
-                                Thêm sinh viên
-                            </h3>
-                        </div>
-                        <div class="col-sm-6">
-                            <ol class="breadcrumb float-sm-end mb-0">
-                                <li class="breadcrumb-item">
-                                    <a href="index.html">
-                                        Danh sách
-                                    </a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page" id="breadcrumbTitle">
-                                    Thêm
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Content -->
-            <div class="app-content">
-                <div class="container-fluid">
-                    <div class="card form-card shadow-sm border-0">
-                        <div class="card-header">
-                            <h3 class="card-title mb-0" id="formTitle">
-                                Thêm sinh viên mới
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="studentForm">
-                                <!-- Student Code -->
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">
-                                            Mã sinh viên
-                                        </label>
-                                        <input type="text" id="studentCode" name="studentCode" class="form-control" />
-                                    </div>
-                                    <!-- Full Name -->
-                                    <div class="col-md-6">
-                                        <label class="form-label">
-                                            Họ và tên
-                                        </label>
-                                        <input type="text" id="fullName" name="fullName" class="form-control" />
-                                    </div>
-                                    <!-- Email -->
-                                    <div class="col-md-6">
-                                        <label class="form-label">
-                                            Email
-                                        </label>
-                                        <input type="email" id="email" name="email" class="form-control" />
-                                    </div>
-                                    <!-- Phone -->
-                                    <div class="col-md-6">
-                                        <label class="form-label">
-                                            Số điện thoại
-                                        </label>
-                                        <input type="text" id="phone" name="phone" class="form-control" />
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label">
-                                            Lớp
-                                        </label>
-                                        <input type="text" id="className" name="className" class="form-control" />
-                                    </div>
-                                </div>
-                                <div class="mt-4 d-flex gap-2">
-                                    <button id="submitButton" type="submit" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle me-1"></i>
-                                        Thêm sinh viên
-                                    </button>
-                                    <a href="index.html" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-left me-1"></i>
-                                        Quay lại
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="app-footer">
-        <div class="float-end d-none d-sm-inline">
-            School Manager
-        </div>
-        <strong>
-            Quản lý sinh viên | AdminLTE 4
-        </strong>
-    </footer>
+        <!-- BẢNG DỮ LIỆU -->
+        <table class="table table-hover mb-0">
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
 </div>
 
+<!-- MODAL ĐĂNG KÝ HỌC PHẦN -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Đăng ký học phần</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Mã Sinh Viên (UUID)</label>
+            <input type="text" class="form-control" id="regStudentId" placeholder="VD: 550e8400-e29b-41d4-a716-446655440000">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Lớp Học Phần</label>
+            <select class="form-select" id="regCourseSectionId"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary fw-bold" onclick="submitRegistration()">Xác nhận Đăng ký</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<script src="/adminlte/js/adminlte.js"></script>
+<!-- BẮT BUỘC CÓ ĐỂ HIỂN THỊ MODAL -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+    let currentTab = 'semester';
+    let allData = [];
 
-<script type="module" src="/assets/js/student.js"></script>
+    async function loadStats() {
+        try {
+            const resSY = await fetch('/api/school-years');
+            const dataSY = await resSY.json();
+            document.getElementById('count-school-years').innerText = dataSY.length;
+            document.getElementById('count-sy-active').innerText = dataSY.filter(i => i.isActive).length;
+
+            const resSem = await fetch('/api/semesters');
+            const dataSem = await resSem.json();
+            document.getElementById('count-semesters').innerText = dataSem.length;
+            document.getElementById('count-sem-active').innerText = dataSem.filter(i => i.isActive).length;
+
+            const resReg = await fetch('/api/student-course-sections');
+            const dataReg = await resReg.json();
+            document.getElementById('count-registrations').innerText = dataReg.length;
+            document.getElementById('count-reg-active').innerText = dataReg.filter(i => i.isActive).length;
+        } catch (e) { console.error("Lỗi thống kê", e); }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.custom-tabs .nav-link').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = 'all';
+        const btnAction = document.getElementById('btn-action');
+
+        if (tab === 'schoolyear') {
+            document.getElementById('tab-sy').classList.add('active');
+            document.getElementById('table-title').innerText = "Danh sách năm học";
+            btnAction.style.display = 'none';
+            loadSchoolYears();
+        } 
+        else if (tab === 'semester') {
+            document.getElementById('tab-sem').classList.add('active');
+            document.getElementById('table-title').innerText = "Danh sách học kỳ";
+            btnAction.style.display = 'none';
+            loadSemesters();
+        } 
+        else if (tab === 'registration') {
+            document.getElementById('tab-reg').classList.add('active');
+            document.getElementById('table-title').innerText = "Danh sách đăng ký học phần";
+            btnAction.style.display = 'block'; 
+            loadRegistrations();
+        }
+    }
+
+    async function loadSchoolYears() {
+        document.getElementById('table-head').innerHTML = `<tr><th>Mã năm</th><th>Tên năm học</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th></tr>`;
+        const res = await fetch('/api/school-years');
+        allData = await res.json();
+        renderSchoolYears(allData);
+    }
+
+    function renderSchoolYears(data) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">${item.code || ''}</td>
+                    <td>${item.name || ''}</td>
+                    <td>${item.startDate || ''}</td>
+                    <td>${item.endDate || ''}</td>
+                    <td>${item.isActive ? '<span class="badge badge-active">Đang hoạt động</span>' : '<span class="badge bg-secondary">Đã khóa</span>'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    async function loadSemesters() {
+        document.getElementById('table-head').innerHTML = `<tr><th>Mã</th><th>Tên học kỳ</th><th>Năm học</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th></tr>`;
+        const res = await fetch('/api/semesters');
+        allData = await res.json();
+        renderSemesters(allData);
+    }
+
+    function renderSemesters(data) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">${item.code || ''}</td>
+                    <td>${item.name || ''}</td>
+                    <td>${item.schoolYearName || 'N/A'}</td>
+                    <td>${item.startDate || ''}</td>
+                    <td>${item.endDate || ''}</td>
+                    <td>${item.isActive ? '<span class="badge badge-active">Đang hoạt động</span>' : '<span class="badge bg-secondary">Đã khóa</span>'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    async function loadRegistrations() {
+        document.getElementById('table-head').innerHTML = `<tr><th>ID Sinh Viên</th><th>Lớp Học Phần</th><th>Ngày ĐK</th><th>Loại ĐK</th><th>Trạng thái</th></tr>`;
+        const res = await fetch('/api/student-course-sections');
+        allData = await res.json();
+        renderRegistrations(allData);
+    }
+
+    function renderRegistrations(data) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold text-truncate" style="max-width: 150px;" title="${item.studentId}">${item.studentId}</td>
+                    <td>${item.courseSection ? item.courseSection.name : 'N/A'}</td>
+                    <td>${item.registrationDate ? new Date(item.registrationDate).toLocaleDateString('vi-VN') : ''}</td>
+                    <td>${item.registrationType || ''}</td>
+                    <td>${item.status || ''}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function filterTable() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+
+        const filteredData = allData.filter(item => {
+            const matchKeyword = (item.code && item.code.toLowerCase().includes(keyword)) || 
+                                 (item.name && item.name.toLowerCase().includes(keyword)) ||
+                                 (item.courseSection && item.courseSection.name.toLowerCase().includes(keyword));
+            
+            let matchStatus = true;
+            if (status === 'active') matchStatus = item.isActive === true;
+            if (status === 'inactive') matchStatus = item.isActive === false;
+
+            return matchKeyword && matchStatus;
+        });
+
+        if (currentTab === 'schoolyear') renderSchoolYears(filteredData);
+        else if (currentTab === 'semester') renderSemesters(filteredData);
+        else if (currentTab === 'registration') renderRegistrations(filteredData);
+    }
+
+    async function openActionModal() {
+        try {
+            const res = await fetch('/api/course-sections');
+            if (!res.ok) throw new Error("Lỗi API");
+            const courseSections = await res.json();
+            const select = document.getElementById('regCourseSectionId');
+            select.innerHTML = '<option value="">-- Chọn lớp học phần --</option>';
+            
+            courseSections.forEach(cs => {
+                let max = cs.maxStudents || 60; 
+                let current = 0; 
+                let statusText = (cs.status !== 'Đang mở') ? " (Đã đóng)" : ` (Còn ${max - current} chỗ)`;
+                let isDisabled = (cs.status !== 'Đang mở');
+
+                const option = document.createElement('option');
+                option.value = cs.id;
+                option.text = `${cs.code} - ${cs.name}${statusText}`;
+                option.disabled = isDisabled;
+                select.appendChild(option);
+            });
+
+            var modal = new bootstrap.Modal(document.getElementById('registerModal'));
+            modal.show();
+        } catch (error) {
+            alert("Không thể tải danh sách lớp học phần.");
+        }
+    }
+
+    async function submitRegistration() {
+        const studentId = document.getElementById('regStudentId').value;
+        const courseSectionId = document.getElementById('regCourseSectionId').value;
+
+        if (!studentId || !courseSectionId) {
+            alert("Vui lòng nhập đủ thông tin!");
+            return;
+        }
+
+        const url = `/api/student-course-sections?courseSectionId=${courseSectionId}`;
+        const bodyData = { studentId: studentId, registrationType: "Học lần đầu", status: "REGISTERED" };
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+
+            if (res.ok) {
+                alert("Đăng ký thành công!");
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                loadStats(); loadRegistrations(); 
+            } else {
+                const errorData = await res.json(); 
+                alert("Lỗi: " + (errorData.message || "Không thể đăng ký!"));
+            }
+        } catch (error) {
+            alert("Lỗi kết nối! Hãy kiểm tra lại mã UUID sinh viên.");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        switchTab('semester'); 
+    });
+</script>
+
 </body>
 </html>
