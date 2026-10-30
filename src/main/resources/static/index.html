@@ -13,6 +13,7 @@
         .bg-blue { background-color: #2563eb; }
         .bg-purple { background-color: #7c3aed; }
         .bg-green { background-color: #059669; }
+        .bg-orange { background-color: #ea580c; } /* Màu cam cho phân công */
         .stat-card h5 { font-size: 1rem; font-weight: normal; margin-bottom: 5px; }
         .stat-card h2 { font-size: 2.5rem; font-weight: bold; margin-bottom: 5px; }
         .stat-card p { font-size: 0.85rem; margin-bottom: 0; opacity: 0.9; }
@@ -29,7 +30,7 @@
 <body>
 
 <div class="container-fluid py-4 px-5">
-    <!-- HEADER: Đã thêm nút chuyển sang trang Sinh Viên -->
+    <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h6 class="text-primary fw-bold text-uppercase mb-1">Hệ thống Quản lý Đào tạo</h6>
@@ -37,37 +38,43 @@
             <p class="text-muted">Theo dõi năm học, học kỳ và đăng ký học phần trên cùng một màn hình.</p>
         </div>
         <div>
-            <!-- Link chuyển trang -->
             <a href="/student.html" class="btn btn-outline-primary fw-bold">Quản lý Sinh viên ➔</a>
         </div>
     </div>
 
-    <!-- Thẻ Thống Kê (Cards) -->
+    <!-- Thẻ Thống Kê (Cards) - Đã sửa thành 4 cột -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card bg-blue">
                 <h5>Năm học</h5>
                 <h2 id="count-school-years">0</h2>
                 <p>Đang hoạt động: <span id="count-sy-active">0</span></p>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card bg-purple">
                 <h5>Học kỳ</h5>
                 <h2 id="count-semesters">0</h2>
                 <p>Đang hoạt động: <span id="count-sem-active">0</span></p>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card bg-green">
                 <h5>Đăng ký học phần</h5>
                 <h2 id="count-registrations">0</h2>
                 <p>Đang hoạt động: <span id="count-reg-active">0</span></p>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-orange">
+                <h5>Phân công giảng viên</h5>
+                <h2 id="count-assignments">0</h2>
+                <p>Đang hoạt động: <span id="count-assign-active">0</span></p>
+            </div>
+        </div>
     </div>
 
-    <!-- Thanh Tab -->
+    <!-- Thanh Tab - Đã thêm tab Phân công -->
     <ul class="nav nav-tabs custom-tabs mb-0 border-bottom-0">
         <li class="nav-item">
             <a class="nav-link" id="tab-sy" onclick="switchTab('schoolyear')">Năm học</a>
@@ -77,6 +84,9 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" id="tab-reg" onclick="switchTab('registration')">Đăng ký học phần</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-assign" onclick="switchTab('assignment')">Phân công giảng viên</a>
         </li>
     </ul>
 
@@ -92,7 +102,6 @@
             <div class="d-flex gap-2">
                 <input type="text" id="searchInput" class="form-control" placeholder="Tìm mã hoặc tên..." style="width: 250px;" onkeyup="filterTable()">
                 
-                <!-- SỬA LẠI THANH LỌC TRẠNG THÁI (Giống ảnh 3) -->
                 <select id="statusFilter" class="form-select fw-bold" style="width: 180px; cursor: pointer;" onchange="filterTable()">
                     <option value="all">Tất cả trạng thái</option>
                     <option value="active">Đang hoạt động</option>
@@ -138,13 +147,13 @@
   </div>
 </div>
 
-<!-- BẮT BUỘC CÓ ĐỂ HIỂN THỊ MODAL -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     let currentTab = 'semester';
     let allData = [];
 
+    // Hàm load thống kê (Đã thêm gọi API Phân công)
     async function loadStats() {
         try {
             const resSY = await fetch('/api/school-years');
@@ -161,9 +170,18 @@
             const dataReg = await resReg.json();
             document.getElementById('count-registrations').innerText = dataReg.length;
             document.getElementById('count-reg-active').innerText = dataReg.filter(i => i.isActive).length;
+
+            // Gọi API lấy số lượng Phân công giảng viên
+            const resAssign = await fetch('/api/lecturer-course-classes');
+            if (resAssign.ok) {
+                const dataAssign = await resAssign.json();
+                document.getElementById('count-assignments').innerText = dataAssign.length;
+                document.getElementById('count-assign-active').innerText = dataAssign.length; // Tạm tính tất cả là đang hoạt động
+            }
         } catch (e) { console.error("Lỗi thống kê", e); }
     }
 
+    // Hàm chuyển Tab (Đã thêm tab assignment)
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.custom-tabs .nav-link').forEach(el => el.classList.remove('active'));
@@ -190,7 +208,15 @@
             btnAction.style.display = 'block'; 
             loadRegistrations();
         }
+        else if (tab === 'assignment') {
+            document.getElementById('tab-assign').classList.add('active');
+            document.getElementById('table-title').innerText = "Danh sách phân công giảng viên";
+            btnAction.style.display = 'none'; 
+            loadAssignments();
+        }
     }
+
+    // --- CÁC HÀM LOAD DỮ LIỆU ---
 
     async function loadSchoolYears() {
         document.getElementById('table-head').innerHTML = `<tr><th>Mã năm</th><th>Tên năm học</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th></tr>`;
@@ -262,6 +288,41 @@
         });
     }
 
+    // --- HÀM MỚI: LOAD PHÂN CÔNG GIẢNG VIÊN ---
+    async function loadAssignments() {
+        document.getElementById('table-head').innerHTML = `<tr><th>Mã Lớp HP</th><th>Tên Lớp HP</th><th>Giảng Viên</th><th>Học Kỳ</th><th>Trạng Thái</th></tr>`;
+        try {
+            const res = await fetch('/api/lecturer-course-classes');
+            allData = await res.json();
+            renderAssignments(allData);
+        } catch (e) {
+            console.error("Lỗi tải phân công:", e);
+            document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu hoặc API chưa sẵn sàng</td></tr>`;
+        }
+    }
+
+    function renderAssignments(data) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        if(!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Chưa có dữ liệu phân công</td></tr>`;
+            return;
+        }
+        data.forEach(item => {
+            // Lưu ý: Các trường courseSection, lecturer có thể khác tên tùy vào code Backend của bạn
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">${item.courseSection?.code || item.courseSectionCode || 'N/A'}</td>
+                    <td>${item.courseSection?.name || item.courseSectionName || 'N/A'}</td>
+                    <td>${item.lecturer?.fullName || item.lecturerName || 'N/A'}</td>
+                    <td>${item.courseSection?.semester?.name || item.semesterName || 'N/A'}</td>
+                    <td><span class="badge badge-active">Đang hoạt động</span></td>
+                </tr>
+            `;
+        });
+    }
+
+    // Hàm lọc (Đã thêm lọc cho assignment)
     function filterTable() {
         const keyword = document.getElementById('searchInput').value.toLowerCase();
         const status = document.getElementById('statusFilter').value;
@@ -269,7 +330,7 @@
         const filteredData = allData.filter(item => {
             const matchKeyword = (item.code && item.code.toLowerCase().includes(keyword)) || 
                                  (item.name && item.name.toLowerCase().includes(keyword)) ||
-                                 (item.courseSection && item.courseSection.name.toLowerCase().includes(keyword));
+                                 (item.courseSection && item.courseSection.name && item.courseSection.name.toLowerCase().includes(keyword));
             
             let matchStatus = true;
             if (status === 'active') matchStatus = item.isActive === true;
@@ -281,8 +342,10 @@
         if (currentTab === 'schoolyear') renderSchoolYears(filteredData);
         else if (currentTab === 'semester') renderSemesters(filteredData);
         else if (currentTab === 'registration') renderRegistrations(filteredData);
+        else if (currentTab === 'assignment') renderAssignments(filteredData);
     }
 
+    // --- CÁC HÀM MODAL ĐĂNG KÝ ---
     async function openActionModal() {
         try {
             const res = await fetch('/api/course-sections');
@@ -343,6 +406,7 @@
         }
     }
 
+    // Khởi chạy
     document.addEventListener('DOMContentLoaded', () => {
         loadStats();
         switchTab('semester'); 
