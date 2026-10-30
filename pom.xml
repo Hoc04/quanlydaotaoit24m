@@ -5,7 +5,6 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<!-- SỬA DÒNG NÀY: Đổi 4.1.1 thành 3.3.5 -->
 		<version>3.3.5</version> 
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
@@ -32,13 +31,21 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		
-		<!-- TÙY CHỌN DB CỦA BẠN -->
-		<!-- Nếu dùng SQL Server thì để nguyên dòng này -->
+		<!-- ================= DB DRIVERS ================= -->
+		<!-- 1. Thư viện cho SQL Server (Chạy ở máy Local) -->
 		<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
-</dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 2. Thư viện cho PostgreSQL (Chạy trên Render) -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- ============================================== -->
 		
 		<dependency>
 			<groupId>org.springdoc</groupId>

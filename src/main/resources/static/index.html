@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <!-- Thẻ Thống Kê (Cards) - Đã sửa thành 4 cột -->
+    <!-- Thẻ Thống Kê (Cards) -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="stat-card bg-blue">
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Thanh Tab - Đã thêm tab Phân công -->
+    <!-- Thanh Tab -->
     <ul class="nav nav-tabs custom-tabs mb-0 border-bottom-0">
         <li class="nav-item">
             <a class="nav-link" id="tab-sy" onclick="switchTab('schoolyear')">Năm học</a>
@@ -97,7 +97,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h5 class="fw-bold mb-0" id="table-title">Danh sách học kỳ</h5>
-                <small class="text-muted" id="table-desc">Tra cứu học kỳ theo tên, mã và trạng thái.</small>
+                <small class="text-muted" id="table-desc">Tra cứu dữ liệu theo tên, mã và trạng thái.</small>
             </div>
             <div class="d-flex gap-2">
                 <input type="text" id="searchInput" class="form-control" placeholder="Tìm mã hoặc tên..." style="width: 250px;" onkeyup="filterTable()">
@@ -107,6 +107,9 @@
                     <option value="active">Đang hoạt động</option>
                     <option value="inactive">Đã khóa</option>
                 </select>
+
+                <!-- NÚT THÊM MỚI (Hiển thị tùy theo Tab) -->
+                <button class="btn btn-success fw-bold" id="btn-add" onclick="addNewItem()" style="display: none;">+ Thêm</button>
 
                 <!-- Nút dành riêng cho Tab Đăng ký -->
                 <button class="btn btn-primary fw-bold" id="btn-action" onclick="openActionModal()" style="display: none;">Đăng ký môn</button>
@@ -153,7 +156,6 @@
     let currentTab = 'semester';
     let allData = [];
 
-    // Hàm load thống kê (Đã thêm gọi API Phân công)
     async function loadStats() {
         try {
             const resSY = await fetch('/api/school-years');
@@ -176,48 +178,112 @@
             if (resAssign.ok) {
                 const dataAssign = await resAssign.json();
                 document.getElementById('count-assignments').innerText = dataAssign.length;
-                document.getElementById('count-assign-active').innerText = dataAssign.length; // Tạm tính tất cả là đang hoạt động
+                document.getElementById('count-assign-active').innerText = dataAssign.length;
             }
         } catch (e) { console.error("Lỗi thống kê", e); }
     }
 
-    // Hàm chuyển Tab (Đã thêm tab assignment)
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.custom-tabs .nav-link').forEach(el => el.classList.remove('active'));
         
         document.getElementById('searchInput').value = '';
         document.getElementById('statusFilter').value = 'all';
-        const btnAction = document.getElementById('btn-action');
+        
+        // Ẩn tất cả các nút đi trước
+        document.getElementById('btn-action').style.display = 'none';
+        const btnAdd = document.getElementById('btn-add');
+        btnAdd.style.display = 'block'; // Mặc định hiện nút Thêm
 
         if (tab === 'schoolyear') {
             document.getElementById('tab-sy').classList.add('active');
             document.getElementById('table-title').innerText = "Danh sách năm học";
-            btnAction.style.display = 'none';
+            btnAdd.innerText = '+ Thêm Năm Học';
             loadSchoolYears();
         } 
         else if (tab === 'semester') {
             document.getElementById('tab-sem').classList.add('active');
             document.getElementById('table-title').innerText = "Danh sách học kỳ";
-            btnAction.style.display = 'none';
+            btnAdd.innerText = '+ Thêm Học Kỳ';
             loadSemesters();
         } 
         else if (tab === 'registration') {
             document.getElementById('tab-reg').classList.add('active');
             document.getElementById('table-title').innerText = "Danh sách đăng ký học phần";
-            btnAction.style.display = 'block'; 
+            btnAdd.innerText = '+ Thêm Lớp HP'; // Quan trọng: Để có data cho dropdown
+            document.getElementById('btn-action').style.display = 'block'; 
             loadRegistrations();
         }
         else if (tab === 'assignment') {
             document.getElementById('tab-assign').classList.add('active');
             document.getElementById('table-title').innerText = "Danh sách phân công giảng viên";
-            btnAction.style.display = 'none'; 
+            btnAdd.innerText = '+ Thêm Phân Công'; // Nút thêm phân công
             loadAssignments();
         }
     }
 
-    // --- CÁC HÀM LOAD DỮ LIỆU ---
+    // --- HÀM XỬ LÝ THÊM MỚI (Dùng prompt cho nhanh) ---
+    async function addNewItem() {
+        let url = '';
+        let data = {};
 
+        if (currentTab === 'schoolyear') {
+            const code = prompt("Nhập mã năm học (VD: 2024-2025):");
+            const name = prompt("Nhập tên năm học:");
+            if (!code) return;
+            url = '/api/school-years';
+            data = { code: code, name: name || code, isActive: true };
+            
+        } else if (currentTab === 'semester') {
+            const code = prompt("Nhập mã học kỳ (VD: HK1):");
+            const name = prompt("Nhập tên học kỳ (VD: Học kỳ 1):");
+            if (!code) return;
+            url = '/api/semesters';
+            data = { code: code, name: name || code, isActive: true };
+
+        } else if (currentTab === 'registration') {
+            const code = prompt("Nhập mã lớp HP (VD: HP001):");
+            const name = prompt("Nhập tên lớp HP (VD: Lập trình Java):");
+            if (!code) return;
+            url = '/api/course-sections';
+            data = { code: code, name: name || code, maxStudents: 50, status: "Đang mở" };
+
+        } else if (currentTab === 'assignment') {
+            const lecturerId = prompt("Nhập mã UUID của Giảng viên (VD: 550e8400-...):");
+            const courseSectionId = prompt("Nhập mã UUID của Lớp Học Phần (VD: 123e4567-...):");
+            const semesterId = prompt("Nhập mã UUID của Học kỳ (VD: 789a0123-...):");
+            
+            if (!lecturerId || !courseSectionId) return;
+
+            // Lưu ý: Tên các trường (lecturerId, courseSectionId) phải khớp với Entity ở Backend của bạn
+            url = '/api/lecturer-course-classes';
+            data = { 
+                lecturerId: lecturerId, 
+                courseSectionId: courseSectionId,
+                semesterId: semesterId 
+            };
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert("Thêm thành công!");
+                loadStats();
+                switchTab(currentTab); // Load lại bảng
+            } else {
+                alert("Lỗi khi thêm! Có thể API Backend chưa hỗ trợ hàm POST này hoặc dữ liệu không hợp lệ.");
+            }
+        } catch (error) {
+            alert("Lỗi kết nối API!");
+        }
+    }
+
+    // --- CÁC HÀM LOAD DỮ LIỆU ---
     async function loadSchoolYears() {
         document.getElementById('table-head').innerHTML = `<tr><th>Mã năm</th><th>Tên năm học</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th></tr>`;
         const res = await fetch('/api/school-years');
@@ -288,7 +354,6 @@
         });
     }
 
-    // --- HÀM MỚI: LOAD PHÂN CÔNG GIẢNG VIÊN ---
     async function loadAssignments() {
         document.getElementById('table-head').innerHTML = `<tr><th>Mã Lớp HP</th><th>Tên Lớp HP</th><th>Giảng Viên</th><th>Học Kỳ</th><th>Trạng Thái</th></tr>`;
         try {
@@ -296,8 +361,7 @@
             allData = await res.json();
             renderAssignments(allData);
         } catch (e) {
-            console.error("Lỗi tải phân công:", e);
-            document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu hoặc API chưa sẵn sàng</td></tr>`;
+            document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>`;
         }
     }
 
@@ -309,7 +373,6 @@
             return;
         }
         data.forEach(item => {
-            // Lưu ý: Các trường courseSection, lecturer có thể khác tên tùy vào code Backend của bạn
             tbody.innerHTML += `
                 <tr>
                     <td class="fw-bold">${item.courseSection?.code || item.courseSectionCode || 'N/A'}</td>
@@ -322,7 +385,6 @@
         });
     }
 
-    // Hàm lọc (Đã thêm lọc cho assignment)
     function filterTable() {
         const keyword = document.getElementById('searchInput').value.toLowerCase();
         const status = document.getElementById('statusFilter').value;
@@ -354,6 +416,11 @@
             const select = document.getElementById('regCourseSectionId');
             select.innerHTML = '<option value="">-- Chọn lớp học phần --</option>';
             
+            if (courseSections.length === 0) {
+                alert("Chưa có Lớp Học Phần nào trong hệ thống! Vui lòng bấm nút '+ Thêm Lớp HP' màu xanh lá trước khi đăng ký.");
+                return;
+            }
+
             courseSections.forEach(cs => {
                 let max = cs.maxStudents || 60; 
                 let current = 0; 
@@ -406,7 +473,6 @@
         }
     }
 
-    // Khởi chạy
     document.addEventListener('DOMContentLoaded', () => {
         loadStats();
         switchTab('semester'); 
