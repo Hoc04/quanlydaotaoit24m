@@ -1,14 +1,58 @@
 package com.example.quanlydaotao.n5.controller;
+
 import com.example.quanlydaotao.n5.entity.Semester;
 import com.example.quanlydaotao.n5.service.SemesterService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List; import java.util.UUID;
-@RestController @RequestMapping("/api/semesters") @CrossOrigin("*")
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/semesters")
+@CrossOrigin("*")
 public class SemesterController {
     private final SemesterService service;
-    public SemesterController(SemesterService service) { this.service = service; }
-    @GetMapping public List<Semester> getAll() { return service.findAll(); }
-    @PostMapping public Semester create(@RequestBody Semester e, @RequestParam(required = false) UUID schoolYearId) { return service.save(e, schoolYearId); }
-    @PutMapping("/{id}") public Semester update(@PathVariable UUID id, @RequestBody Semester e, @RequestParam(required = false) UUID schoolYearId) { e.setId(id); return service.save(e, schoolYearId); }
-    @DeleteMapping("/{id}") public void delete(@PathVariable UUID id) { service.delete(id); }
+
+    public SemesterController(SemesterService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List<Semester> getAll(@RequestParam(required = false) Boolean isActive) {
+        return service.findAll(isActive);
+    }
+
+    @GetMapping("/{id}")
+    public Semester getById(@PathVariable UUID id) {
+        return service.findById(id);
+    }
+
+    @PostMapping
+    public Semester create(@RequestBody Semester e, @RequestParam(required = false) UUID schoolYearId) {
+        return service.save(e, schoolYearId);
+    }
+
+    @PutMapping("/{id}")
+    public Semester update(@PathVariable UUID id, @RequestBody Semester e, @RequestParam(required = false) UUID schoolYearId) {
+        return service.update(id, e, schoolYearId);
+    }
+
+    @PatchMapping("/{id}/active")
+    public Semester updateActive(@PathVariable UUID id, @RequestBody(required = false) Map<String, Boolean> body) {
+        Boolean isActive = body != null ? body.get("isActive") : null;
+        return service.toggleActive(id, isActive);
+    }
+
+    @PatchMapping("/{id}/status")
+    public Semester updateStatus(@PathVariable UUID id, @RequestParam(required = false) Boolean isActive) {
+        return service.toggleActive(id, isActive);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
