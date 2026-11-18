@@ -48,6 +48,18 @@ public class Schedule {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "mode")
+    private String mode;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "schedule_status")
+    private String scheduleStatus;
+
+    @Column(name = "note")
+    private String note;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -110,6 +122,18 @@ public class Schedule {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getMode() { return mode; }
+    public void setMode(String mode) { this.mode = mode; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public String getScheduleStatus() { return scheduleStatus; }
+    public void setScheduleStatus(String scheduleStatus) { this.scheduleStatus = scheduleStatus; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

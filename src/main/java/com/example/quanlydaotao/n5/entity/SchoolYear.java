@@ -1,6 +1,7 @@
 package com.example.quanlydaotao.n5.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Nationalized;
 import java.time.LocalDate;
 
 @Entity
@@ -9,12 +10,15 @@ public class SchoolYear extends BaseEntity {
     @Column(name = "code", length = 100)
     private String code;
 
+    @Nationalized
     @Column(name = "name", length = 255)
     private String name;
 
+    @Nationalized
     @Column(name = "description", length = 255)
     private String description;
 
+    @Nationalized
     @Column(name = "note", length = 255)
     private String note;
 
@@ -24,7 +28,6 @@ public class SchoolYear extends BaseEntity {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    // Getters & Setters
     public String getCode() { return code; }
     public void setCode(String code) { this.code = code; }
 

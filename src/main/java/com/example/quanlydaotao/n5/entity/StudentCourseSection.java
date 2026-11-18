@@ -1,6 +1,7 @@
 package com.example.quanlydaotao.n5.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Nationalized;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ public class StudentCourseSection extends BaseEntity {
     @Column(name = "student_code", length = 100)
     private String studentCode;
 
+    @Nationalized
     @Column(name = "student_name", length = 255)
     private String studentName;
 
@@ -20,18 +22,24 @@ public class StudentCourseSection extends BaseEntity {
     @JoinColumn(name = "course_section_id")
     private CourseSection courseSection;
 
+    @Transient
+    private UUID transientCourseSectionId;
+
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
 
+    @Nationalized
     @Column(name = "registration_type", length = 100)
     private String registrationType = "Học lần đầu";
 
+    @Nationalized
     @Column(name = "status", length = 100)
-    private String status = "REGISTERED";
+    private String status = "Đang học";
 
     @Column(name = "attempt_number", length = 100)
     private String attemptNumber = "1";
 
+    @Nationalized
     @Column(name = "note", length = 255)
     private String note;
 
@@ -43,7 +51,7 @@ public class StudentCourseSection extends BaseEntity {
             this.registrationDate = LocalDateTime.now();
         }
         if (this.status == null || this.status.isBlank()) {
-            this.status = "REGISTERED";
+            this.status = "Đang học";
         }
         if (this.registrationType == null || this.registrationType.isBlank()) {
             this.registrationType = "Học lần đầu";
@@ -53,7 +61,6 @@ public class StudentCourseSection extends BaseEntity {
         }
     }
 
-    // Getters & Setters
     public UUID getStudentId() { return studentId; }
     public void setStudentId(UUID studentId) { this.studentId = studentId; }
 
@@ -64,7 +71,39 @@ public class StudentCourseSection extends BaseEntity {
     public void setStudentName(String studentName) { this.studentName = studentName; }
 
     public CourseSection getCourseSection() { return courseSection; }
-    public void setCourseSection(CourseSection courseSection) { this.courseSection = courseSection; }
+    public void setCourseSection(CourseSection courseSection) {
+        this.courseSection = courseSection;
+        if (courseSection != null) {
+            this.transientCourseSectionId = courseSection.getId();
+        }
+    }
+
+    public UUID getCourseSectionId() {
+        if (courseSection != null && courseSection.getId() != null) {
+            return courseSection.getId();
+        }
+        return transientCourseSectionId;
+    }
+
+    public void setCourseSectionId(UUID courseSectionId) {
+        this.transientCourseSectionId = courseSectionId;
+    }
+
+    public String getCourseSectionCode() {
+        return courseSection != null ? courseSection.getCode() : null;
+    }
+
+    public String getCourseSectionName() {
+        return courseSection != null ? courseSection.getName() : null;
+    }
+
+    public String getCourseSectionDisplayName() {
+        return courseSection != null ? courseSection.getDisplayName() : null;
+    }
+
+    public String getCourseSectionSemesterName() {
+        return courseSection != null ? courseSection.getSemesterShortName() : null;
+    }
 
     public LocalDateTime getRegistrationDate() { return registrationDate; }
     public void setRegistrationDate(LocalDateTime registrationDate) { this.registrationDate = registrationDate; }

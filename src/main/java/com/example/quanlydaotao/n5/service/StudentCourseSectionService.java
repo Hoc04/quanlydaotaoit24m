@@ -1,56 +1,168 @@
 package com.example.quanlydaotao.n5.service;
 
-import com.example.quanlydaotao.n5.entity.StudentCourseSection;
+import com.example.quanlydaotao.n2.entity.Student;
+import com.example.quanlydaotao.n2.repository.StudentRepository;
 import com.example.quanlydaotao.n5.entity.CourseSection;
-import com.example.quanlydaotao.n5.entity.Student;
-import com.example.quanlydaotao.n5.repository.StudentCourseSectionRepository;
+import com.example.quanlydaotao.n5.entity.StudentCourseSection;
 import com.example.quanlydaotao.n5.repository.CourseSectionRepository;
-import com.example.quanlydaotao.n5.repository.StudentRepository;
+import com.example.quanlydaotao.n5.repository.StudentCourseSectionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class StudentCourseSectionService {
     private final StudentCourseSectionRepository repo;
     private final CourseSectionRepository csRepo;
+    private final CourseSectionService courseSectionService;
     private final StudentRepository studentRepo;
 
     public StudentCourseSectionService(StudentCourseSectionRepository repo,
-                                      CourseSectionRepository csRepo,
-                                      StudentRepository studentRepo) {
+                                       CourseSectionRepository csRepo,
+                                       CourseSectionService courseSectionService,
+                                       StudentRepository studentRepo) {
         this.repo = repo;
         this.csRepo = csRepo;
+        this.courseSectionService = courseSectionService;
         this.studentRepo = studentRepo;
     }
 
     public List<StudentCourseSection> findAll(Boolean isActive) {
-        if (isActive != null) {
-            return repo.findByIsActiveAndDeletedAtIsNull(isActive);
+        return findAll(null, null, null, isActive);
+    }
+
+    public List<StudentCourseSection> findAll(UUID studentId, UUID courseSectionId, String status, Boolean isActive) {
+        String st = (status != null && !status.isBlank()) ? status.trim() : null;
+        List<StudentCourseSection> list = repo.search(studentId, courseSectionId, st, isActive);
+        enrichRegistrations(list);
+        return list;
+    }
+
+    public Map<String, Object> getBySection(UUID sectionId) {
+        CourseSection cs = courseSectionService.findById(sectionId);
+        List<StudentCourseSection> regs = repo.findByCourseSectionIdAndDeletedAtIsNull(sectionId);
+        enrichRegistrations(regs);
+
+        Map<UUID, Student> studentMap = new HashMap<>();
+        try {
+            for (Student s : studentRepo.findAll()) {
+                if (s.getId() != null) studentMap.put(s.getId(), s);
+            }
+        } catch (Exception ignored) {}
+
+        long totalStudying = regs.stream()
+                .filter(r -> Boolean.TRUE.equals(r.getIsActive()))
+                .filter(r -> {
+                    String st = r.getStatus() != null ? r.getStatus().trim() : "";
+                    return st.equalsIgnoreCase("Đang học") || st.equalsIgnoreCase("STUDYING");
+                })
+                .count();
+
+        List<Map<String, Object>> studentList = new ArrayList<>();
+        for (StudentCourseSection r : regs) {
+            Student st = r.getStudentId() != null ? studentMap.get(r.getStudentId()) : null;
+            String code = (r.getStudentCode() != null && !r.getStudentCode().isBlank())
+                    ? r.getStudentCode()
+                    : (st != null ? st.getStudentCode() : "—");
+            String fullName = (r.getStudentName() != null && !r.getStudentName().isBlank())
+                    ? r.getStudentName()
+                    : (st != null ? st.getFullName() : "—");
+            String email = st != null && st.getEmail() != null ? st.getEmail() : "—";
+
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", r.getId());
+            item.put("student_id", r.getStudentId());
+            item.put("studentId", r.getStudentId());
+            item.put("student_code", code);
+            item.put("studentCode", code);
+            item.put("full_name", fullName);
+            item.put("fullName", fullName);
+            item.put("studentName", fullName);
+            item.put("email", email);
+            item.put("registered_at", r.getRegistrationDate());
+            item.put("registrationDate", r.getRegistrationDate());
+            item.put("registration_type", r.getRegistrationType());
+            item.put("registrationType", r.getRegistrationType());
+            item.put("status", r.getStatus());
+            item.put("is_active", r.getIsActive());
+            item.put("isActive", r.getIsActive());
+            studentList.add(item);
         }
-        return repo.findByDeletedAtIsNull();
+
+        Map<String, Object> sectionInfo = new LinkedHashMap<>();
+        sectionInfo.put("id", cs.getId());
+        sectionInfo.put("code", cs.getCode());
+        sectionInfo.put("name", cs.getName());
+        sectionInfo.put("display_name", cs.getDisplayName());
+        sectionInfo.put("displayName", cs.getDisplayName());
+        sectionInfo.put("course_name", cs.getCourseName());
+        sectionInfo.put("semester_name", cs.getSemesterShortName());
+        sectionInfo.put("lecturer_name", cs.getLecturerName() != null ? cs.getLecturerName() : "Chưa phân công");
+        sectionInfo.put("room_name", cs.getRoomName() != null ? cs.getRoomName() : "Chưa xếp phòng");
+        sectionInfo.put("max_students", cs.getMaxStudents() != null ? cs.getMaxStudents() : 50);
+        sectionInfo.put("maxStudents", cs.getMaxStudents() != null ? cs.getMaxStudents() : 50);
+        sectionInfo.put("status", cs.getStatus());
+        sectionInfo.put("is_active", cs.getIsActive());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("section_info", sectionInfo);
+        result.put("total_studying", totalStudying);
+        result.put("totalStudying", totalStudying);
+        result.put("total_registered", regs.size());
+        result.put("totalRegistered", regs.size());
+        result.put("students", studentList);
+        return result;
+    }
+
+    private void enrichRegistrations(List<StudentCourseSection> list) {
+        if (list == null || list.isEmpty()) return;
+        Map<UUID, Student> studentMap = new HashMap<>();
+        try {
+            for (Student s : studentRepo.findAll()) {
+                if (s.getId() != null) studentMap.put(s.getId(), s);
+            }
+        } catch (Exception ignored) {}
+
+        for (StudentCourseSection item : list) {
+            if (item.getStudentId() != null && (item.getStudentName() == null || item.getStudentName().isBlank() || item.getStudentCode() == null || item.getStudentCode().isBlank())) {
+                Student st = studentMap.get(item.getStudentId());
+                if (st != null) {
+                    if (item.getStudentName() == null || item.getStudentName().isBlank()) {
+                        item.setStudentName(st.getFullName());
+                    }
+                    if (item.getStudentCode() == null || item.getStudentCode().isBlank()) {
+                        item.setStudentCode(st.getStudentCode());
+                    }
+                }
+            }
+        }
     }
 
     public StudentCourseSection findById(UUID id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký với ID: " + id));
+        StudentCourseSection item = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký với ID: " + id));
+        enrichRegistrations(List.of(item));
+        return item;
     }
 
     public StudentCourseSection save(StudentCourseSection e, UUID csId) {
-        UUID targetCsId = csId;
-        if (targetCsId == null && e.getCourseSection() != null) {
-            targetCsId = e.getCourseSection().getId();
+        UUID targetCsId = csId != null ? csId : e.getCourseSectionId();
+        if (e.getStudentId() == null || targetCsId == null) {
+            throw new IllegalArgumentException("Sinh viên và Lớp học phần không được để trống!");
         }
 
         if (targetCsId != null) {
             CourseSection cs = csRepo.findById(targetCsId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học phần!"));
 
+            if (Boolean.FALSE.equals(cs.getIsActive())) {
+                throw new RuntimeException("Lớp học phần đang ngừng hoạt động, không thể đăng ký!");
+            }
+
             if (cs.getStatus() != null) {
                 String st = cs.getStatus().toLowerCase();
                 if (st.contains("đóng") || st.equals("closed") || st.equals("canceled") || st.contains("hủy")) {
-                    throw new RuntimeException("Lớp học phần này hiện không mở đăng ký!");
+                    throw new RuntimeException("Lớp học phần này hiện đã đóng đăng ký!");
                 }
             }
 
@@ -66,7 +178,6 @@ public class StudentCourseSectionService {
             e.setCourseSection(cs);
         }
 
-        // Cache student information if studentId exists
         if (e.getStudentId() != null) {
             studentRepo.findById(e.getStudentId()).ifPresent(st -> {
                 if (e.getStudentName() == null || e.getStudentName().isBlank()) {
@@ -78,14 +189,33 @@ public class StudentCourseSectionService {
             });
         }
 
-        return repo.save(e);
+        StudentCourseSection saved = repo.save(e);
+        enrichRegistrations(List.of(saved));
+        return saved;
     }
 
     public StudentCourseSection update(UUID id, StudentCourseSection updateData, UUID csId) {
-        StudentCourseSection existing = findById(id);
-        if (updateData.getStudentId() != null) existing.setStudentId(updateData.getStudentId());
-        if (updateData.getStudentCode() != null) existing.setStudentCode(updateData.getStudentCode());
-        if (updateData.getStudentName() != null) existing.setStudentName(updateData.getStudentName());
+        StudentCourseSection existing = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký với ID: " + id));
+        UUID targetCsId = csId != null ? csId : updateData.getCourseSectionId();
+        UUID targetStudentId = updateData.getStudentId() != null ? updateData.getStudentId() : existing.getStudentId();
+
+        if (targetCsId != null && targetStudentId != null) {
+            boolean changedClassOrStudent = !targetStudentId.equals(existing.getStudentId())
+                    || (existing.getCourseSectionId() == null || !targetCsId.equals(existing.getCourseSectionId()));
+            if (changedClassOrStudent && repo.existsByStudentIdAndCourseSectionIdAndDeletedAtIsNull(targetStudentId, targetCsId)) {
+                throw new RuntimeException("Sinh viên đã đăng ký lớp học phần này rồi!");
+            }
+        }
+
+        if (updateData.getStudentId() != null) {
+            existing.setStudentId(updateData.getStudentId());
+            studentRepo.findById(updateData.getStudentId()).ifPresent(st -> {
+                existing.setStudentName(st.getFullName());
+                existing.setStudentCode(st.getStudentCode());
+            });
+        }
+        if (updateData.getStudentCode() != null && !updateData.getStudentCode().isBlank()) existing.setStudentCode(updateData.getStudentCode());
+        if (updateData.getStudentName() != null && !updateData.getStudentName().isBlank()) existing.setStudentName(updateData.getStudentName());
         if (updateData.getRegistrationDate() != null) existing.setRegistrationDate(updateData.getRegistrationDate());
         if (updateData.getRegistrationType() != null) existing.setRegistrationType(updateData.getRegistrationType());
         if (updateData.getStatus() != null) existing.setStatus(updateData.getStatus());
@@ -93,23 +223,27 @@ public class StudentCourseSectionService {
         if (updateData.getNote() != null) existing.setNote(updateData.getNote());
         if (updateData.getIsActive() != null) existing.setIsActive(updateData.getIsActive());
 
-        UUID targetCsId = csId != null ? csId : (updateData.getCourseSection() != null ? updateData.getCourseSection().getId() : null);
         if (targetCsId != null) {
             CourseSection cs = csRepo.findById(targetCsId).orElse(null);
             if (cs != null) existing.setCourseSection(cs);
         }
 
-        return repo.save(existing);
+        StudentCourseSection saved = repo.save(existing);
+        enrichRegistrations(List.of(saved));
+        return saved;
     }
 
     public StudentCourseSection toggleActive(UUID id, Boolean isActive) {
-        StudentCourseSection existing = findById(id);
+        StudentCourseSection existing = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký với ID: " + id));
         existing.setIsActive(isActive != null ? isActive : !existing.getIsActive());
-        return repo.save(existing);
+        StudentCourseSection saved = repo.save(existing);
+        enrichRegistrations(List.of(saved));
+        return saved;
     }
 
     public void delete(UUID id) {
-        StudentCourseSection existing = findById(id);
+        StudentCourseSection existing = repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký với ID: " + id));
+        existing.setIsActive(false);
         existing.setDeletedAt(LocalDateTime.now());
         repo.save(existing);
     }

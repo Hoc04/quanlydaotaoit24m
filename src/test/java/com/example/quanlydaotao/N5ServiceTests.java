@@ -1,5 +1,7 @@
 package com.example.quanlydaotao;
 
+import com.example.quanlydaotao.n2.entity.Student;
+import com.example.quanlydaotao.n2.service.StudentService;
 import com.example.quanlydaotao.n5.entity.*;
 import com.example.quanlydaotao.n5.service.*;
 import org.junit.jupiter.api.Test;
@@ -65,6 +67,14 @@ class N5ServiceTests {
 
         academicYearService.delete(saved.getId());
         assertFalse(academicYearService.findAll(null).stream().anyMatch(i -> i.getId().equals(saved.getId())));
+
+        // Kiểm tra ngày bắt đầu phải nhỏ hơn ngày kết thúc
+        AcademicYear invalidAy = new AcademicYear();
+        invalidAy.setCode("INVALID");
+        invalidAy.setName("Invalid Dates");
+        invalidAy.setStartDate(LocalDate.of(2026, 9, 1));
+        invalidAy.setEndDate(LocalDate.of(2025, 6, 30));
+        assertThrows(RuntimeException.class, () -> academicYearService.save(invalidAy));
     }
 
     @Test
@@ -72,12 +82,16 @@ class N5ServiceTests {
         SchoolYear sy = new SchoolYear();
         sy.setCode("2025-2026");
         sy.setName("Năm học 2025-2026");
+        sy.setStartDate(LocalDate.of(2025, 8, 1));
+        sy.setEndDate(LocalDate.of(2026, 7, 31));
         SchoolYear savedSy = schoolYearService.save(sy);
         assertNotNull(savedSy.getId());
 
         Semester sem = new Semester();
         sem.setCode("HK1_2025_2026");
         sem.setName("Học kỳ 1 năm 2025-2026");
+        sem.setStartDate(LocalDate.of(2025, 8, 15));
+        sem.setEndDate(LocalDate.of(2026, 1, 15));
         Semester savedSem = semesterService.save(sem, savedSy.getId());
 
         assertNotNull(savedSem.getId());
@@ -103,7 +117,7 @@ class N5ServiceTests {
         cs.setCode("IT101-01");
         cs.setName("Lập trình Java");
         cs.setMaxStudents(30);
-        cs.setStatus("open");
+        cs.setStatus("Đang mở");
         cs = courseSectionService.save(cs, sem.getId());
         assertNotNull(cs.getId());
 
@@ -136,9 +150,11 @@ class N5ServiceTests {
         LecturerCourseClass assign = new LecturerCourseClass();
         assign.setEmployeeName("TS. Nguyễn Văn A");
         assign.setRole("Giảng viên chính");
+        assign.setHours(45);
         LecturerCourseClass savedAssign = lecturerCourseClassService.save(assign, cs.getId());
 
         assertNotNull(savedAssign.getId());
         assertEquals("Lập trình Java", savedAssign.getCourseClassName());
+        assertEquals(45, savedAssign.getHours());
     }
 }

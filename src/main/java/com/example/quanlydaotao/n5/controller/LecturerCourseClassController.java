@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/api/lecturer-course-classes", "/api/course-class-instructors"})
+@RequestMapping({"/api/lecturer-course-classes", "/api/course-class-instructors", "/api/lecturer-assignments"})
 @CrossOrigin("*")
 public class LecturerCourseClassController {
     private final LecturerCourseClassService service;
@@ -20,8 +20,14 @@ public class LecturerCourseClassController {
     }
 
     @GetMapping
-    public List<LecturerCourseClass> getAll(@RequestParam(required = false) Boolean isActive) {
-        return service.findAll(isActive);
+    public List<LecturerCourseClass> getAll(
+            @RequestParam(required = false) UUID employeeId,
+            @RequestParam(required = false) UUID courseClassId,
+            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) String courseClassName,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Boolean isActive) {
+        return service.findAll(employeeId, courseClassId, employeeName, courseClassName, role, isActive);
     }
 
     @GetMapping("/{id}")
@@ -51,8 +57,8 @@ public class LecturerCourseClassController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable UUID id) {
         service.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Đã xóa mềm thành công", "isActive", false));
     }
 }

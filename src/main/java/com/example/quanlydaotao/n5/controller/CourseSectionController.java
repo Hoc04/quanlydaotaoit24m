@@ -20,8 +20,12 @@ public class CourseSectionController {
     }
 
     @GetMapping
-    public List<CourseSection> getAll(@RequestParam(required = false) Boolean isActive) {
-        return service.findAll(isActive);
+    public List<CourseSection> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UUID semesterId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isActive) {
+        return service.findAll(keyword, semesterId, status, isActive);
     }
 
     @GetMapping("/{id}")
@@ -51,8 +55,8 @@ public class CourseSectionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable UUID id) {
         service.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Đã xóa mềm thành công", "isActive", false));
     }
 }

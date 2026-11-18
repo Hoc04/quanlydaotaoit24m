@@ -6,6 +6,7 @@ import com.example.quanlydaotao.n5.repository.SemesterRepository;
 import com.example.quanlydaotao.n5.repository.SchoolYearRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -21,25 +22,32 @@ public class SemesterService {
     }
 
     public List<Semester> findAll(Boolean isActive) {
-        if (isActive != null) {
-            return repo.findByIsActiveAndDeletedAtIsNull(isActive);
-        }
-        return repo.findByDeletedAtIsNull();
+        return findAll(null, null, isActive);
+    }
+
+    public List<Semester> findAll(String keyword, UUID schoolYearId, Boolean isActive) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        return repo.search(kw, schoolYearId, isActive);
     }
 
     public Semester findById(UUID id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy học kỳ với ID: " + id));
     }
 
+    private void validateDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && !startDate.isBefore(endDate)) {
+            throw new RuntimeException("Ngày bắt đầu học kỳ phải nhỏ hơn ngày kết thúc!");
+        }
+    }
+
     public Semester save(Semester e, UUID syId) {
-        if (syId != null) {
-            SchoolYear sy = syRepo.findById(syId).orElse(null);
-            if (sy != null) {
-                e.setSchoolYear(sy);
-                e.setSchoolYearName(sy.getName());
-            }
-        } else if (e.getSchoolYear() != null && e.getSchoolYear().getId() != null) {
-            SchoolYear sy = syRepo.findById(e.getSchoolYear().getId()).orElse(null);
+        if (e.getCode() == null || e.getCode().isBlank() || e.getName() == null || e.getName().isBlank()) {
+            throw new IllegalArgumentException("Mã học kỳ và Tên học kỳ không được để trống!");
+        }
+        validateDates(e.getStartDate(), e.getEndDate());
+        UUID targetSyId = syId != null ? syId : e.getSchoolYearId();
+        if (targetSyId != null) {
+            SchoolYear sy = syRepo.findById(targetSyId).orElse(null);
             if (sy != null) {
                 e.setSchoolYear(sy);
                 e.setSchoolYearName(sy.getName());
@@ -50,13 +58,18 @@ public class SemesterService {
 
     public Semester update(UUID id, Semester updateData, UUID syId) {
         Semester existing = findById(id);
+        LocalDate start = updateData.getStartDate() != null ? updateData.getStartDate() : existing.getStartDate();
+        LocalDate end = updateData.getEndDate() != null ? updateData.getEndDate() : existing.getEndDate();
+        validateDates(start, end);
+
         if (updateData.getCode() != null) existing.setCode(updateData.getCode());
         if (updateData.getName() != null) existing.setName(updateData.getName());
+        if (updateData.getSchoolYearName() != null) existing.setSchoolYearName(updateData.getSchoolYearName());
         if (updateData.getStartDate() != null) existing.setStartDate(updateData.getStartDate());
         if (updateData.getEndDate() != null) existing.setEndDate(updateData.getEndDate());
         if (updateData.getIsActive() != null) existing.setIsActive(updateData.getIsActive());
 
-        UUID targetSyId = syId != null ? syId : (updateData.getSchoolYear() != null ? updateData.getSchoolYear().getId() : null);
+        UUID targetSyId = syId != null ? syId : updateData.getSchoolYearId();
         if (targetSyId != null) {
             SchoolYear sy = syRepo.findById(targetSyId).orElse(null);
             if (sy != null) {
@@ -75,6 +88,7 @@ public class SemesterService {
 
     public void delete(UUID id) {
         Semester existing = findById(id);
+        existing.setIsActive(false);
         existing.setDeletedAt(LocalDateTime.now());
         repo.save(existing);
     }

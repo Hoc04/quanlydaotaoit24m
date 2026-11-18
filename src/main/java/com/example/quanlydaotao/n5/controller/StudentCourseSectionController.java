@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/student-course-sections")
+@RequestMapping({"/api/student-course-sections", "/api/course-registrations"})
 @CrossOrigin("*")
 public class StudentCourseSectionController {
     private final StudentCourseSectionService service;
@@ -20,8 +20,26 @@ public class StudentCourseSectionController {
     }
 
     @GetMapping
-    public List<StudentCourseSection> getAll(@RequestParam(required = false) Boolean isActive) {
-        return service.findAll(isActive);
+    public List<StudentCourseSection> getAll(
+            @RequestParam(required = false) UUID studentId,
+            @RequestParam(required = false) UUID courseSectionId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isActive) {
+        return service.findAll(studentId, courseSectionId, status, isActive);
+    }
+
+    @GetMapping("/details")
+    public List<StudentCourseSection> getDetails(
+            @RequestParam(required = false) UUID studentId,
+            @RequestParam(required = false) UUID courseSectionId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isActive) {
+        return service.findAll(studentId, courseSectionId, status, isActive);
+    }
+
+    @GetMapping("/by-section/{sectionId}")
+    public Map<String, Object> getBySection(@PathVariable UUID sectionId) {
+        return service.getBySection(sectionId);
     }
 
     @GetMapping("/{id}")
@@ -51,8 +69,8 @@ public class StudentCourseSectionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable UUID id) {
         service.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Đã xóa mềm thành công", "isActive", false));
     }
 }
